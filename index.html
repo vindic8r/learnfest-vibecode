@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Weekly Work Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Pro:wght@400;500;600&display=swap');
+    
+    :root {
+      /* Fonts */
+      --font-display: 'MedievalSharp', cursive;
+      --font-body: 'Crimson Pro', Georgia, serif;
+      
+      /* D&D Themed Colors */
+      --primary: #8b0000;          /* Blood Red */
+      --success: #1a472a;          /* Forest Green */
+      --warning: #b8860b;          /* Dark Golden */
+      --error: #800000;            /* Maroon */
+    }
+
+    :root[data-theme="dark"] {
+      --surface: #2c1810;          /* Dark Wood */
+      --background: #1a0f0f;       /* Deep Dungeon */
+      --text: #d4af37;            /* Aged Gold */
+      --muted: #8b7355;           /* Aged Parchment */
+      --chart-text: #c0c0c0;      /* Silver */
+      --border: rgba(139, 69, 19, 0.3); /* Aged Wood */
+      --scroll: url('https://www.transparenttextures.com/patterns/parchment.png');
+    }
+
+    :root[data-theme="light"] {
+      --surface: #f5e6d3;          /* Parchment */
+      --background: #ebe5d8;       /* Aged Paper */
+      --text: #2c1810;            /* Dark Wood */
+      --muted: #8b4513;           /* Saddle Brown */
+      --chart-text: #654321;      /* Dark Brown */
+      --border: rgba(139, 69, 19, 0.2); /* Wood */
+      --scroll: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--background);
+      background-image: var(--scroll);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: linear-gradient(rgba(0,0,0,0.1), transparent);
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .control {
+      background: var(--surface);
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      min-width: 200px;
+    }
+    
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: var(--font-body);
+    }
+    
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: 2px solid var(--muted);
+      padding: 0.5rem 1rem;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-family: var(--font-display);
+      transition: all 0.2s;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+    }
+    
+    button:hover { 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border-color: var(--text);
+    }
+    
+    button:disabled { 
+      opacity: 0.5; 
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+    
+    .scroll-select {
+      font-family: 'MedievalSharp', cursive;
+      border: 2px solid var(--muted);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0.5rem;
+      border-radius: 0.3rem;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .card {
+      background: var(--surface);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      border: 2px solid var(--muted);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background-image: var(--scroll);
+      position: relative;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      pointer-events: none;
+    }
+    
+    .chart-container {
+      margin-top: 1rem;
+      height: 300px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    
+    .table-container {
+      margin-top: 1rem;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      background: transparent;
+    }
+    
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.8rem;
+      border-bottom: 3px double var(--border);
+    }
+    
+    tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .completed-yes { color: var(--success); }
+    .completed-no { color: var(--error); }
+    .blockers { color: var(--warning); }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .card-title {
+      color: var(--muted);
+      font-size: 1.1rem;
+      font-weight: 500;
+      font-family: var(--font-display);
+      letter-spacing: 0.02em;
+    }
+    
+    table {
+      font-family: var(--font-body);
+    }
+    
+    th {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+    }
+    
+    td {
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="title">⚔️ Adventurer's Quest Log ⚔️</h1>
+        <p style="color: var(--muted); font-size: 0.9rem;">Chronicles of heroic deeds and epic quests</p>
+      </div>
+      <div class="controls">
+        <button class="theme-toggle" id="themeToggle">
+          <span id="themeIcon">�</span>
+          <span id="themeText">Dark Realm</span>
+        </button>
+        <div class="control">
+          <select id="projectFilter" class="scroll-select">
+            <option value="all">All Campaigns</option>
+          </select>
+        </div>
+        <div class="control">
+          <select id="completedFilter" class="scroll-select">
+            <option value="all">All Quest Status</option>
+            <option value="yes">Victorious</option>
+            <option value="no">In Progress</option>
+          </select>
+        </div>
+        <div class="control">
+          <input type="text" id="searchInput" placeholder="Scry for quests or obstacles...">
+        </div>
+        <button id="refreshBtn">Consult the Oracle</button>
+      </div>
+    </header>
+    
+    <div class="grid">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🗺️ Quest Distribution Across Realms</div>
+            <div style="color: var(--muted); font-size: 0.8rem;" id="dateRange"></div>
+          </div>
+          <div class="chart-container">
+            <canvas id="capacityChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-top: 2rem">
+          <div class="card-header">
+            <div class="card-title">📜 Adventure Chronicles</div>
+            <div style="color: var(--muted); font-size: 0.8rem;" id="itemCount"></div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="week">Moon Phase</th>
+                  <th data-sort="project">Campaign</th>
+                  <th data-sort="tasks">Quests</th>
+                  <th data-sort="capacity">Power Level</th>
+                  <th data-sort="completed">Quest Status</th>
+                  <th>Obstacles</th>
+                </tr>
+              </thead>
+              <tbody id="dataTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚔️ Battle Victories</div>
+          </div>
+          <div class="chart-container">
+            <canvas id="completionChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-top: 2rem">
+          <div class="card-header">
+            <div class="card-title">🏰 Realm Distribution</div>
+          </div>
+          <div class="chart-container">
+            <canvas id="projectChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    // State
+    let rawData = [];
+    let filteredData = [];
+    let charts = {};
+    
+    // D&D Themed Colors
+    const colors = [
+      '#8b0000', // Blood Red
+      '#1e4d2b', // Forest Green
+      '#c41e3a', // Cardinal
+      '#b8860b', // Dark Golden
+      '#800000', // Maroon
+      '#654321', // Dark Brown
+      '#4b0082', // Indigo
+      '#8b4513'  // Saddle Brown
+    ];
+    
+    // Theme management
+    function initTheme() {
+      const savedTheme = localStorage.getItem('dashboard-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeButton(savedTheme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('dashboard-theme', newTheme);
+      updateThemeButton(newTheme);
+      
+      // Refresh charts with new theme colors
+      if (Object.keys(charts).length > 0) {
+        renderCharts();
+      }
+    }
+
+    function updateThemeButton(theme) {
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+      if (theme === 'dark') {
+        icon.textContent = '�';
+        text.textContent = 'Dark Realm';
+      } else {
+        icon.textContent = '⚔️';
+        text.textContent = 'Light Realm';
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      setupEventListeners();
+      fetchData();
+    });
+    
+    function setupEventListeners() {
+      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+      document.getElementById('projectFilter').addEventListener('change', filterData);
+      document.getElementById('completedFilter').addEventListener('change', filterData);
+      document.getElementById('searchInput').addEventListener('input', debounce(filterData, 300));
+      document.getElementById('refreshBtn').addEventListener('click', fetchData);
+      
+      // Sort handlers
+      document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortTable(th.dataset.sort));
+      });
+    }
+    
+    function fetchData() {
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      
+      google.script.run
+        .withSuccessHandler(onDataFetched)
+        .withFailureHandler(onError)
+        .getData();
+    }
+    
+    function onDataFetched(data) {
+      rawData = data.rows;
+      updateProjectFilter(data.projects);
+      filterData();
+      
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = false;
+      btn.textContent = 'Refresh Data';
+    }
+    
+    function onError(error) {
+      console.error('Error:', error);
+      alert('Error loading data. Please try again.');
+      
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = false;
+      btn.textContent = 'Refresh Data';
+    }
+    
+    function updateProjectFilter(projects) {
+      const select = document.getElementById('projectFilter');
+      select.innerHTML = '<option value="all">All Projects</option>' +
+        projects.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+    }
+    
+    function filterData() {
+      const project = document.getElementById('projectFilter').value;
+      const completed = document.getElementById('completedFilter').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      
+      filteredData = rawData.filter(row => {
+        if (project !== 'all' && row.project !== project) return false;
+        if (completed !== 'all' && row.completed.toString() !== completed) return false;
+        if (search && !`${row.tasks} ${row.blockers} ${row.project}`.toLowerCase().includes(search)) return false;
+        return true;
+      });
+      
+      updateUI();
+    }
+    
+    function updateUI() {
+      renderTable();
+      renderCharts();
+      updateStats();
+    }
+    
+    function renderTable() {
+      const tbody = document.getElementById('dataTable');
+      tbody.innerHTML = filteredData.map(row => `
+        <tr>
+          <td>${escapeHtml(row.week)}</td>
+          <td>${escapeHtml(row.project)}</td>
+          <td>${escapeHtml(row.tasks)}</td>
+          <td>${row.capacity}%</td>
+          <td class="completed-${row.completed ? 'yes' : 'no'}">${escapeHtml(row.completedText)}</td>
+          <td class="blockers">${escapeHtml(row.blockers || '-')}</td>
+        </tr>
+      `).join('');
+    }
+    
+    function renderCharts() {
+      // Destroy existing charts
+      Object.values(charts).forEach(chart => chart.destroy());
+      charts = {};
+      
+      // Capacity by project over time
+      renderCapacityChart();
+      
+      // Completion status
+      renderCompletionChart();
+      
+      // Project distribution
+      renderProjectChart();
+    }
+    
+    function renderCapacityChart() {
+      const ctx = document.getElementById('capacityChart');
+      const weeks = [...new Set(filteredData.map(r => r.week))].sort();
+      const projects = [...new Set(filteredData.map(r => r.project))];
+      
+      const datasets = projects.map((project, i) => ({
+        label: project,
+        data: weeks.map(week => {
+          const items = filteredData.filter(r => r.week === week && r.project === project);
+          return items.reduce((sum, r) => sum + r.capacity, 0);
+        }),
+        backgroundColor: colors[i % colors.length],
+      }));
+      
+      charts.capacity = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: weeks,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { 
+              stacked: true,
+              ticks: { 
+                color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(),
+                font: {
+                  family: "'Crimson Pro', serif",
+                  size: 12
+                }
+              }
+            },
+            y: { 
+              stacked: true,
+              beginAtZero: true,
+              ticks: { 
+                color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(),
+                font: {
+                  family: "'Crimson Pro', serif",
+                  size: 12
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { 
+                color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(),
+                font: {
+                  family: "'Crimson Pro', serif",
+                  size: 13
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      document.getElementById('dateRange').textContent = 
+        weeks.length ? `${weeks[0]} to ${weeks[weeks.length-1]}` : 'No data';
+    }
+    
+    function renderCompletionChart() {
+      const ctx = document.getElementById('completionChart');
+      const completed = filteredData.filter(r => r.completed).length;
+      const notCompleted = filteredData.length - completed;
+      
+      charts.completion = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completed', 'Not Completed'],
+          datasets: [{
+            data: [completed, notCompleted],
+            backgroundColor: ['#22c55e', '#ef4444']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim() }
+            }
+          }
+        }
+      });
+    }
+    
+    function renderProjectChart() {
+      const ctx = document.getElementById('projectChart');
+      const projectStats = {};
+      
+      filteredData.forEach(row => {
+        projectStats[row.project] = (projectStats[row.project] || 0) + row.capacity;
+      });
+      
+      const projects = Object.keys(projectStats).sort();
+      
+      charts.project = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: projects,
+          datasets: [{
+            data: projects.map(p => projectStats[p]),
+            backgroundColor: projects.map((_, i) => colors[i % colors.length])
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { 
+                color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(),
+                font: { size: 11 }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    function updateStats() {
+      document.getElementById('itemCount').textContent = 
+        `${filteredData.length} items`;
+    }
+    
+    function sortTable(key) {
+      filteredData.sort((a, b) => {
+        const aVal = a[key];
+        const bVal = b[key];
+        if (typeof aVal === 'string') {
+          return aVal.localeCompare(bVal);
+        }
+        return aVal - bVal;
+      });
+      renderTable();
+    }
+    
+    // Utilities
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+  </script>
+</body>
+</html>
